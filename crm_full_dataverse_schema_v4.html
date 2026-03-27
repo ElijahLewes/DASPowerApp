@@ -133,8 +133,8 @@
       <p><span class="tag tag-blue">Staff</span> is a custom table with a <code>SystemUserID</code> lookup back to Dataverse's built-in User table. This lets you map the logged-in user (<code>User().Email</code>) to their Staff record at runtime — enabling auto-populated <code>CreatedBy</code>, personal dashboards, and caseload filtering without hardcoding.</p>
     </div>
     <div class="note-card">
-      <h3>StudentStaff junction</h3>
-      <p><span class="tag tag-blue">StudentStaff</span> has both an <code>AssignmentType</code> choice and an <code>IsPrimary</code> boolean. The boolean enables a fast single-row lookup for a student's primary counselor without parsing choice values. A student can have multiple staff assigned with different roles simultaneously.</p>
+      <h3>StaffStudent junction</h3>
+      <p><span class="tag tag-blue">StaffStudent</span> has both an <code>AssignmentType</code> choice and an <code>IsPrimary</code> boolean. The boolean enables a fast single-row lookup for a student's primary counselor without parsing choice values. A student can have multiple staff assigned with different roles simultaneously.</p>
     </div>
     <div class="note-card">
       <h3>CourseOfferings — pivotal junction</h3>
@@ -173,7 +173,7 @@
       <ul><li>Counselor</li><li>Coordinator</li><li>Director</li><li>Intake Specialist</li><li>Administrative</li></ul>
     </div>
     <div class="choice-card">
-      <h4>StudentStaff — AssignmentType</h4>
+      <h4>StaffStudent — AssignmentType</h4>
       <ul><li>Primary Counselor</li><li>Secondary</li><li>Intake Coordinator</li><li>Case Reviewer</li></ul>
     </div>
     <div class="choice-card">
@@ -231,7 +231,7 @@
       <div class="dd-col"><span class="dd-cname">UniversityID</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Institutional student ID. Used as the matching key when syncing enrollment data from PeopleSoft via Power Automate.</span></div>
       <div class="dd-col"><span class="dd-cname">Program</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Student's declared academic program or major. Free text to avoid maintaining a program lookup table.</span></div>
       <div class="dd-col"><span class="dd-cname">EnrollmentStatus</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Active = currently enrolled. Graduated = degree awarded. Withdrawn = left voluntarily. Leave of Absence = temporarily away.</span></div>
-      <div class="dd-col"><span class="dd-cname">EmergencyContactName / Phone</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Captured during intake. Surfaced on the student detail screen for quick reference during appointments.</span></div>
+      <!-- Diagnosis not stored for privacy/security reasons for audits. Would otherwise be restricted by security group -->
     </div>
   </div>
 
@@ -286,17 +286,15 @@
       <div class="dd-col"><span class="dd-cname">ProfessorID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">Referenced by CourseInstructors.</span></div>
       <div class="dd-col"><span class="dd-cname">FirstName / LastName / Email / Phone</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Contact information. Email is the primary channel for notifying instructors of approved accommodations.</span></div>
       <div class="dd-col"><span class="dd-cname">Department</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Academic department. Used for filtering in instructor lookup screens.</span></div>
-      <div class="dd-col"><span class="dd-cname">OfficeLocation</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Building and room number. Displayed on accommodation letters sent to students.</span></div>
     </div>
   </div>
 
   <div class="dd-table">
     <div class="dd-header"><span class="dd-tname">Courses</span><span class="dd-tdesc">Master catalog of courses. Each record represents a course in the abstract (ENGL 101 always exists) independent of when it is offered. Populated via PeopleSoft sync. DeptTitle and CourseCode are stored separately to enable department-level filtering.</span></div>
     <div class="dd-cols">
-      <div class="dd-col"><span class="dd-cname">CourseID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">Referenced by CourseOfferings.</span></div>
-      <div class="dd-col"><span class="dd-cname">DeptTitle</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Department abbreviation (e.g. "ENGL", "MATH"). Stored separately from CourseCode to support department-level filtering.</span></div>
-      <div class="dd-col"><span class="dd-cname">CourseCode</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Numeric or alphanumeric course number (e.g. "101"). Combined with DeptTitle in the app: DeptTitle &amp; " " &amp; CourseCode.</span></div>
-      <div class="dd-col"><span class="dd-cname">FullName</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Official course title (e.g. "Introduction to Composition"). Displayed alongside course code in student course lists.</span></div>
+      <div class="dd-col"><span class="dd-cname">DeptKey</span><span class="dd-ctype">Composite Key</span><span class="dd-cdesc">Department abbreviation (e.g. "ENGL", "MATH"). Stored separately from CourseCode to support department-level filtering.</span></div>
+      <div class="dd-col"><span class="dd-cname">CourseCode</span><span class="dd-ctype">Composit Key</span><span class="dd-cdesc">Numeric or alphanumeric course number (e.g. "101"). Combined with DeptTitle in the app: DeptTitle &amp; " " &amp; CourseCode.</span></div>
+      <div class="dd-col"><span class="dd-cname">CourseTitle</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Official course title (e.g. "Introduction to Composition"). Displayed alongside course code in student course lists.</span></div>
       <div class="dd-col"><span class="dd-cname">Credits</span><span class="dd-ctype">Integer</span><span class="dd-cdesc">Credit hours awarded. Informational — not used in accommodation logic.</span></div>
       <div class="dd-col"><span class="dd-cname">DeliveryFormat</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">In-Person, Online, or Hybrid. Relevant to accommodation planning — some accommodations apply only to in-person or hybrid courses.</span></div>
     </div>
@@ -306,10 +304,12 @@
     <div class="dd-header"><span class="dd-tname">CourseOfferings</span><span class="dd-tdesc">A specific instance of a course in a given semester. The pivotal junction in the academic cluster — student enrollments, instructor assignments, and accommodation requests all link here rather than to Courses directly. Enables querying all accommodations active for a student in a specific semester.</span></div>
     <div class="dd-cols">
       <div class="dd-col"><span class="dd-cname">OfferingID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">Referenced by CourseInstructors, StudentCourses, and AccommodationRequests.</span></div>
-      <div class="dd-col"><span class="dd-cname">CourseID</span><span class="dd-ctype fk">FK → Courses</span><span class="dd-cdesc">The master course this offering is an instance of.</span></div>
+      <div class="dd-col"><span class="dd-cname">DeptKey</span><span class="dd-ctype fk">FK → Courses</span><span class="dd-cdesc">Part of composite key for inique course.</span></div>
+      <div class="dd-col"><span class="dd-cname">CourseCode</span><span class="dd-ctype fk">FK → Courses</span><span class="dd-cdesc">Part of composite key for inique course.</span></div>
       <div class="dd-col"><span class="dd-cname">SemesterID</span><span class="dd-ctype fk">FK → Semesters</span><span class="dd-cdesc">The semester in which this offering runs.</span></div>
       <div class="dd-col"><span class="dd-cname">Section</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Section identifier (e.g. "001"). Together with CourseID and SemesterID, uniquely identifies an offering.</span></div>
       <div class="dd-col"><span class="dd-cname">Room</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Building and room where the course meets. Used when coordinating testing accommodations with physical location.</span></div>
+      <!-- Keeping MeetinDays/Times in to help with accomodated test scheduling -->
       <div class="dd-col"><span class="dd-cname">MeetingDays / MeetingTime</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Schedule information (e.g. "MWF", "09:00–09:50"). Displayed on student course lists and accommodation views.</span></div>
     </div>
   </div>
@@ -330,6 +330,9 @@
       <div class="dd-col"><span class="dd-cname">OfferingID</span><span class="dd-ctype fk">FK → CourseOfferings</span><span class="dd-cdesc">The specific section and semester the student is enrolled in.</span></div>
       <div class="dd-col"><span class="dd-cname">EnrollmentStatus</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Enrolled = active. Dropped = withdrew during add/drop. Withdrawn = left after deadline. Completed = finished. Audit = attending without credit.</span></div>
       <div class="dd-col"><span class="dd-cname">EnrolledDate</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Date the student registered for the course. Synced from PeopleSoft.</span></div>
+      <div class="dd-col"><span class="dd-cname">DropDate</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Date the student dropped course if applicable. Synced from PeopleSoft.</span></div>
+      <div class="dd-col"><span class="dd-cname">CurentGradeStatus</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Passed, Withdrew, Failed, Incomplete status. Synced from PeopleSoft.</span></div>
+      <div class="dd-col"><span class="dd-cname">GradeApproval</span><span class="dd-ctype">bool</span><span class="dd-cdesc">Used to flag if grade needs to be disputed for accessibility compliance.</span></div>
     </div>
   </div>
 
@@ -339,7 +342,6 @@
       <div class="dd-col"><span class="dd-cname">TypeID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">Referenced by StudentEligibility and AccommodationRequests.</span></div>
       <div class="dd-col"><span class="dd-cname">Name</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Accommodation name as displayed in the app and on letters (e.g. "Extended Time — 1.5x").</span></div>
       <div class="dd-col"><span class="dd-cname">Description</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Plain-language description of what the accommodation entails. Shown in staff-facing detail views.</span></div>
-      <div class="dd-col"><span class="dd-cname">Category</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Broad grouping: Testing, Housing, Mobility, Technology, Communication, Attendance, Other. Used for filtering and Power BI reporting breakdowns.</span></div>
       <div class="dd-col"><span class="dd-cname">RequiresMedicalDoc</span><span class="dd-ctype">Boolean</span><span class="dd-cdesc">True if supporting medical documentation is required before eligibility can be granted. Surfaced as a warning in the eligibility form.</span></div>
     </div>
   </div>
@@ -364,7 +366,6 @@
       <div class="dd-col"><span class="dd-cname">OfferingID</span><span class="dd-ctype fk">FK → CourseOfferings (optional)</span><span class="dd-cdesc">Links to a specific course section. Null for non-course accommodations such as housing or parking.</span></div>
       <div class="dd-col"><span class="dd-cname">Status</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Pending = awaiting review. Approved = active. Denied = not approved. Expired = past ActiveUntil. Withdrawn = student cancelled.</span></div>
       <div class="dd-col"><span class="dd-cname">RegisteredDate</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Date the student submitted the request.</span></div>
-      <div class="dd-col"><span class="dd-cname">ActiveFrom / ActiveUntil</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Date range during which the accommodation is in force. Typically aligns with semester boundaries for course-linked requests.</span></div>
       <div class="dd-col"><span class="dd-cname">ApprovedBy</span><span class="dd-ctype fk">FK → Staff</span><span class="dd-cdesc">Staff member who approved the request. Null until approval is granted.</span></div>
       <div class="dd-col"><span class="dd-cname">SpecialInstructions</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Accommodation-specific notes for the instructor or testing center (e.g. "Student requires large-print exam materials").</span></div>
     </div>

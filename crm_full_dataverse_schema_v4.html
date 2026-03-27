@@ -224,12 +224,13 @@
   <div class="dd-table">
     <div class="dd-header"><span class="dd-tname">Students</span><span class="dd-tdesc">Core student profile. One record per student registered with DAS. Acts as the primary hub — every other table has a direct or indirect relationship back here.</span></div>
     <div class="dd-cols">
-      <div class="dd-col"><span class="dd-cname">StudentID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">System-generated unique identifier. Used as the FK target in all related tables.</span></div>
-      <div class="dd-col"><span class="dd-cname">FirstName / LastName</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Student's legal name. Combined as a calculated Full Name column for display throughout the app.</span></div>
+      <div class="dd-col"><span class="dd-cname">StudentID</span><span class="dd-ctype pk">PK · Text</span><span class="dd-cdesc">Limited to 8 characters. Used as the FK target in all related tables. Used as matching key for PeopleSoft sync</span></div>
+      <div class="dd-col"><span class="dd-cname">FName/LName</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Student's preferred name. Combined as a calculated Full Name column for display throughout the app.</span></div>
       <div class="dd-col"><span class="dd-cname">Email</span><span class="dd-ctype">Text</span><span class="dd-cdesc">University-issued email address. Primary contact method and login identifier lookup.</span></div>
       <div class="dd-col"><span class="dd-cname">Phone</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Primary phone number. Stored as text to accommodate formatting variations.</span></div>
-      <div class="dd-col"><span class="dd-cname">UniversityID</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Institutional student ID. Used as the matching key when syncing enrollment data from PeopleSoft via Power Automate.</span></div>
-      <div class="dd-col"><span class="dd-cname">Program</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Student's declared academic program or major. Free text to avoid maintaining a program lookup table.</span></div>
+      <!-- In production would need to sync academic program changes from PeopleSoft as well. Was not a high priority in origional build. -->
+      <div class="dd-col"><span class="dd-cname">Program</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Student's declared academic program or major. Necessary for reporting.</span></div>
+       <div class="dd-col"><span class="dd-cname">ProgramLevel</span><span class="dd-ctype">Choice</span><span class="dd-cdesc"> Undergrad, Grad, Law, Doctor. Necessary for reporting.</span></div>
       <div class="dd-col"><span class="dd-cname">EnrollmentStatus</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Active = currently enrolled. Graduated = degree awarded. Withdrawn = left voluntarily. Leave of Absence = temporarily away.</span></div>
       <!-- Diagnosis not stored for privacy/security reasons for audits. Would otherwise be restricted by security group -->
     </div>
@@ -240,7 +241,6 @@
     <div class="dd-cols">
       <div class="dd-col"><span class="dd-cname">StaffID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">Referenced by StudentStaff, StudentNotes, Appointments, StudentEligibility, and AccommodationRequests.</span></div>
       <div class="dd-col"><span class="dd-cname">FirstName / LastName / Email / Phone</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Staff contact info. Email must match the Microsoft 365 account for SystemUserID mapping to work.</span></div>
-      <div class="dd-col"><span class="dd-cname">Title / Department</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Job title and department. Used for display on student profiles and in reporting filters.</span></div>
       <div class="dd-col"><span class="dd-cname">Role</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Functional role within DAS. Drives access control — Directors see all records, Counselors see their assigned caseload only.</span></div>
       <div class="dd-col"><span class="dd-cname">IsActive</span><span class="dd-ctype">Boolean</span><span class="dd-cdesc">Inactive staff are excluded from assignment dropdowns but records are preserved for historical accuracy.</span></div>
       <div class="dd-col"><span class="dd-cname">SystemUserID</span><span class="dd-ctype fk">Lookup → User</span><span class="dd-cdesc">Lookup to Dataverse's built-in User table. Enables User().Email lookups at runtime to auto-resolve the logged-in user to their Staff record.</span></div>

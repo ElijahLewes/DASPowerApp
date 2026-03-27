@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Disability Access CRM — Dataverse Schema v4</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #fafaf9;
+      color: #1a1a18;
+    }
+    h1 { font-size: 20px; font-weight: 500; margin: 0 0 4px; }
+    .subtitle { font-size: 13px; color: #888780; margin-bottom: 2rem; }
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 20px;
+      margin-bottom: 1.5rem; padding: 12px 16px;
+      background: #fff; border: 1px solid #e5e3db;
+      border-radius: 10px; font-size: 12px; color: #5f5e5a;
+    }
+    .leg-group { display: flex; flex-direction: column; gap: 4px; }
+    .leg-title { font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #888780; margin-bottom: 2px; }
+    .leg-item { display: flex; align-items: center; gap: 6px; }
+    .leg-dot { width: 10px; height: 10px; border-radius: 3px; }
+    #erd-container {
+      background: #fff; border: 1px solid #e5e3db;
+      border-radius: 12px; padding: 24px; overflow-x: auto;
+    }
+    #erd svg { width: 100% !important; min-width: 1000px; }
+    .notes {
+      margin-top: 1.5rem; display: grid;
+      grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .note-card {
+      background: #fff; border: 1px solid #e5e3db;
+      border-radius: 10px; padding: 14px 16px;
+    }
+    .note-card h3 { font-size: 13px; font-weight: 500; margin: 0 0 6px; }
+    .note-card p { font-size: 12px; color: #5f5e5a; margin: 0; line-height: 1.6; }
+    .tag {
+      display: inline-block; font-size: 11px; font-weight: 500;
+      padding: 2px 8px; border-radius: 20px; margin-right: 4px; margin-bottom: 4px;
+    }
+    .tag-purple { background: #EEEDFE; color: #3C3489; }
+    .tag-teal   { background: #E1F5EE; color: #085041; }
+    .tag-amber  { background: #FAEEDA; color: #633806; }
+    .tag-coral  { background: #FAECE7; color: #712B13; }
+    .tag-blue   { background: #E6F1FB; color: #185FA5; }
+    .tag-gray   { background: #F1EFE8; color: #444441; }
+    code { font-family: monospace; font-size: 11px; background: #f1efe8; padding: 1px 5px; border-radius: 4px; }
+    .choice-grid {
+      margin-top: 1.5rem; display: grid;
+      grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    .choice-card {
+      background: #fff; border: 1px solid #e5e3db;
+      border-radius: 10px; padding: 12px 14px;
+    }
+    .choice-card h4 { font-size: 12px; font-weight: 500; margin: 0 0 6px; color: #1a1a18; }
+    .choice-card ul { margin: 0; padding-left: 14px; font-size: 11px; color: #5f5e5a; line-height: 1.7; }
+    .section-label {
+      font-size: 11px; font-weight: 500; letter-spacing: .06em;
+      text-transform: uppercase; color: #888780; margin: 1.5rem 0 .6rem;
+    }
+    footer { margin-top: 2rem; font-size: 11px; color: #b4b2a9; text-align: right; }
+    .dd-table { background:#fff; border:1px solid #e5e3db; border-radius:10px; margin-bottom:10px; overflow:hidden; }
+    .dd-header { display:flex; gap:12px; padding:12px 16px; background:#f7f6f3; border-bottom:1px solid #e5e3db; align-items:baseline; }
+    .dd-tname { font-size:13px; font-weight:500; color:#1a1a18; min-width:180px; }
+    .dd-tdesc { font-size:12px; color:#5f5e5a; line-height:1.55; }
+    .dd-cols { display:flex; flex-direction:column; }
+    .dd-col { display:grid; grid-template-columns:190px 160px 1fr; gap:12px; padding:7px 16px; border-bottom:1px solid #f1efe8; font-size:12px; align-items:start; }
+    .dd-col:last-child { border-bottom:none; }
+    .dd-cname { font-weight:500; color:#1a1a18; }
+    .dd-ctype { color:#888780; }
+    .dd-ctype.pk { color:#3C3489; font-weight:500; }
+    .dd-ctype.fk { color:#085041; }
+    .dd-cdesc { color:#5f5e5a; line-height:1.5; }
+    @media (max-width:700px) { .dd-col { grid-template-columns:1fr; } .dd-header { flex-direction:column; gap:4px; } }
+
+    @media (max-width: 700px) {
+      .notes { grid-template-columns: 1fr; }
+      .choice-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Disability Access CRM — Dataverse Schema</h1>
+  <p class="subtitle">Version 4 &nbsp;·&nbsp; 17 tables &nbsp;·&nbsp; Disability Access Office, University CRM</p>
+
+  <div class="legend">
+    <div class="leg-group">
+      <div class="leg-title">Core</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#7F77DD"></div> Students</div>
+    </div>
+    <div class="leg-group">
+      <div class="leg-title">Staff</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#D4537E"></div> Staff</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#D4537E"></div> StudentStaff</div>
+    </div>
+    <div class="leg-group">
+      <div class="leg-title">Academic</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div> Semesters / StudentSemesters</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div> Courses / Offerings / Instructors</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div> Professors / StudentCourses</div>
+    </div>
+    <div class="leg-group">
+      <div class="leg-title">Accommodations</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div> AccommodationTypes</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div> StudentEligibility</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div> AccommodationRequests</div>
+    </div>
+    <div class="leg-group">
+      <div class="leg-title">Notes &amp; documents</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#D85A30"></div> StudentNotes / Documents</div>
+    </div>
+    <div class="leg-group">
+      <div class="leg-title">Scheduling</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#888780"></div> Appointments</div>
+    </div>
+  </div>
+
+  <div id="erd-container">
+    <div id="erd"></div>
+  </div>
+
+  <div class="section-label">Design decisions</div>
+  <div class="notes">
+    <div class="note-card">
+      <h3>Staff vs system user</h3>
+      <p><span class="tag tag-blue">Staff</span> is a custom table with a <code>SystemUserID</code> lookup back to Dataverse's built-in User table. This lets you map the logged-in user (<code>User().Email</code>) to their Staff record at runtime — enabling auto-populated <code>CreatedBy</code>, personal dashboards, and caseload filtering without hardcoding.</p>
+    </div>
+    <div class="note-card">
+      <h3>StudentStaff junction</h3>
+      <p><span class="tag tag-blue">StudentStaff</span> has both an <code>AssignmentType</code> choice and an <code>IsPrimary</code> boolean. The boolean enables a fast single-row lookup for a student's primary counselor without parsing choice values. A student can have multiple staff assigned with different roles simultaneously.</p>
+    </div>
+    <div class="note-card">
+      <h3>CourseOfferings — pivotal junction</h3>
+      <p><span class="tag tag-teal">Courses</span> holds the master record (ENGL 123). <span class="tag tag-teal">CourseOfferings</span> is the actual instance — Section 02, MWF 10am, Fall 2024. Student enrollments, instructor assignments, and accommodation requests all point at an offering, not a course directly.</p>
+    </div>
+    <div class="note-card">
+      <h3>Eligibility vs. requests</h3>
+      <p><span class="tag tag-amber">StudentEligibility</span> = what a student has been assessed and cleared to receive (stable, set by staff). <span class="tag tag-amber">AccommodationRequests</span> = active registrations actually invoked per offering or term. Comparing the two gives "eligible but not yet registered" — a key workflow view.</p>
+    </div>
+    <div class="note-card">
+      <h3>AccommodationRequests.OfferingID</h3>
+      <p>The <code>OfferingID</code> FK is optional by design. Course-specific accommodations (extended exam time for ENGL 123) link to an offering. General accommodations (parking, housing) do not. One table handles both without a split.</p>
+    </div>
+    <div class="note-card">
+      <h3>StudentNotes — appointment link</h3>
+      <p><span class="tag tag-coral">StudentNotes</span> has an optional <code>AppointmentID</code> FK. A note can be a standalone general observation on a student, or tied to a specific appointment for context. The <code>IsPrivate</code> boolean restricts visibility to the authoring staff member only — useful for sensitive observations that shouldn't be visible to all staff.</p>
+    </div>
+    <div class="note-card">
+      <h3>Documents — student only</h3>
+      <p><span class="tag tag-coral">Documents</span> attaches directly to a student record. Without case management, all uploaded files (diagnostic letters, medical docs, correspondence) are stored at the student level and browsable from the student detail screen.</p>
+    </div>
+  </div>
+
+  <div class="section-label">Choice column reference</div>
+  <div class="choice-grid">
+    <div class="choice-card">
+      <h4>Students — RegistrationStatus</h4>
+      <ul>
+        <li><strong>Registered</strong> — active student registered with DAS</li>
+        <li><strong>Unregistered</strong> — current student no longer using DAS services</li>
+        <li><strong>Inactive</strong> — student no longer enrolled at the university</li>
+      </ul>
+    </div>
+    <div class="choice-card">
+      <h4>Staff — Role</h4>
+      <ul><li>Counselor</li><li>Coordinator</li><li>Director</li><li>Intake Specialist</li><li>Administrative</li></ul>
+    </div>
+    <div class="choice-card">
+      <h4>StudentStaff — AssignmentType</h4>
+      <ul><li>Primary Counselor</li><li>Secondary</li><li>Intake Coordinator</li><li>Case Reviewer</li></ul>
+    </div>
+    <div class="choice-card">
+      <h4>StudentNotes — NoteType</h4>
+      <ul><li>General</li><li>Phone Call</li><li>Email</li><li>Meeting</li><li>Follow-up</li><li>Observation</li></ul>
+    </div>
+    <div class="choice-card">
+      <h4>AccommodationTypes — Category</h4>
+      <ul><li>Testing</li><li>Housing</li><li>Mobility</li><li>Technology</li><li>Communication</li><li>Attendance</li><li>Other</li></ul>
+    </div>
+    <div class="choice-card">
+      <h4>AccommodationRequests — Status</h4>
+      <ul><li>Pending</li><li>Approved</li><li>Denied</li><li>Expired</li><li>Withdrawn</li></ul>
+    </div>
+    <div class="choice-card">
+      <h4>Appointments — AppointmentType</h4>
+      <ul><li>Intake</li><li>Follow-up</li><li>Review</li><li>Documentation</li><li>General</li></ul>
+    </div>
+    <div class="choice-card">
+      <h4>Appointments — Status</h4>
+      <ul><li>Scheduled</li><li>Completed</li><li>Cancelled</li><li>No Show</li></ul>
+    </div>
+    <div class="choice-card">
+      <h4>Courses — DeliveryFormat</h4>
+      <ul><li>In-Person</li><li>Online</li><li>Hybrid</li></ul>
+    </div>
+    <div class="choice-card">
+      <h4>Semesters — Term</h4>
+      <ul><li>Fall</li><li>Spring</li><li>Summer</li><li>Winter</li></ul>
+    </div>
+    <div class="choice-card">
+      <h4>StudentSemesters — Status</h4>
+      <ul><li>Active</li><li>Completed</li><li>Withdrawn</li></ul>
+    </div>
+    <div class="choice-card">
+      <h4>CourseInstructors — Role</h4>
+      <ul><li>Primary Instructor</li><li>Co-Instructor</li><li>Teaching Assistant</li></ul>
+    </div>
+    <div class="choice-card">
+      <h4>StudentCourses — EnrollmentStatus</h4>
+      <ul><li>Enrolled</li><li>Dropped</li><li>Withdrawn</li><li>Completed</li><li>Audit</li></ul>
+    </div>
+  </div>
+
+
+  <div class="section-label">Data dictionary</div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">Students</span><span class="dd-tdesc">Core student profile. One record per student registered with DAS. Acts as the primary hub — every other table has a direct or indirect relationship back here.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">StudentID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">System-generated unique identifier. Used as the FK target in all related tables.</span></div>
+      <div class="dd-col"><span class="dd-cname">FirstName / LastName</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Student's legal name. Combined as a calculated Full Name column for display throughout the app.</span></div>
+      <div class="dd-col"><span class="dd-cname">Email</span><span class="dd-ctype">Text</span><span class="dd-cdesc">University-issued email address. Primary contact method and login identifier lookup.</span></div>
+      <div class="dd-col"><span class="dd-cname">Phone</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Primary phone number. Stored as text to accommodate formatting variations.</span></div>
+      <div class="dd-col"><span class="dd-cname">UniversityID</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Institutional student ID. Used as the matching key when syncing enrollment data from PeopleSoft via Power Automate.</span></div>
+      <div class="dd-col"><span class="dd-cname">Program</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Student's declared academic program or major. Free text to avoid maintaining a program lookup table.</span></div>
+      <div class="dd-col"><span class="dd-cname">EnrollmentStatus</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Active = currently enrolled. Graduated = degree awarded. Withdrawn = left voluntarily. Leave of Absence = temporarily away.</span></div>
+      <div class="dd-col"><span class="dd-cname">EmergencyContactName / Phone</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Captured during intake. Surfaced on the student detail screen for quick reference during appointments.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">Staff</span><span class="dd-tdesc">DAS office staff who interact with students and manage accommodations. Linked to Dataverse's built-in User table via SystemUserID to map the logged-in Microsoft account to the correct staff record at runtime.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">StaffID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">Referenced by StudentStaff, StudentNotes, Appointments, StudentEligibility, and AccommodationRequests.</span></div>
+      <div class="dd-col"><span class="dd-cname">FirstName / LastName / Email / Phone</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Staff contact info. Email must match the Microsoft 365 account for SystemUserID mapping to work.</span></div>
+      <div class="dd-col"><span class="dd-cname">Title / Department</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Job title and department. Used for display on student profiles and in reporting filters.</span></div>
+      <div class="dd-col"><span class="dd-cname">Role</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Functional role within DAS. Drives access control — Directors see all records, Counselors see their assigned caseload only.</span></div>
+      <div class="dd-col"><span class="dd-cname">IsActive</span><span class="dd-ctype">Boolean</span><span class="dd-cdesc">Inactive staff are excluded from assignment dropdowns but records are preserved for historical accuracy.</span></div>
+      <div class="dd-col"><span class="dd-cname">SystemUserID</span><span class="dd-ctype fk">Lookup → User</span><span class="dd-cdesc">Lookup to Dataverse's built-in User table. Enables User().Email lookups at runtime to auto-resolve the logged-in user to their Staff record.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">StudentStaff</span><span class="dd-tdesc">Junction table associating students with one or more DAS staff members. Supports multiple concurrent assignments with distinct roles. IsPrimary enables fast lookup of the primary counselor without filtering on choice values.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">StudentID</span><span class="dd-ctype fk">FK → Students</span><span class="dd-cdesc">The student being assigned.</span></div>
+      <div class="dd-col"><span class="dd-cname">StaffID</span><span class="dd-ctype fk">FK → Staff</span><span class="dd-cdesc">The staff member assigned to the student.</span></div>
+      <div class="dd-col"><span class="dd-cname">AssignmentType</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Primary Counselor = main contact. Secondary = supporting role. Intake Coordinator = managing initial registration. Case Reviewer = oversight only.</span></div>
+      <div class="dd-col"><span class="dd-cname">AssignedDate / EndDate</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Date range for the assignment. EndDate is null for active assignments.</span></div>
+      <div class="dd-col"><span class="dd-cname">IsPrimary</span><span class="dd-ctype">Boolean</span><span class="dd-cdesc">True for the student's primary counselor. Only one row per student should have IsPrimary = true at any time. Enforced at the app layer.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">Semesters</span><span class="dd-tdesc">Reference table of academic terms. Created once per semester by an administrator. IsActive flags the current term used to pre-populate semester dropdowns throughout the app.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">SemesterID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">Referenced by StudentSemesters and CourseOfferings.</span></div>
+      <div class="dd-col"><span class="dd-cname">Name</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Display name (e.g. "Fall 2024"). Used in dropdowns and report labels.</span></div>
+      <div class="dd-col"><span class="dd-cname">Term</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Season: Fall, Spring, Summer, Winter. Combined with Year to uniquely identify a semester.</span></div>
+      <div class="dd-col"><span class="dd-cname">Year</span><span class="dd-ctype">Integer</span><span class="dd-cdesc">Four-digit academic year (e.g. 2024).</span></div>
+      <div class="dd-col"><span class="dd-cname">StartDate / EndDate</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Official semester boundaries. Used to determine whether accommodations and enrollments fall within an active period.</span></div>
+      <div class="dd-col"><span class="dd-cname">IsActive</span><span class="dd-ctype">Boolean</span><span class="dd-cdesc">True for the current semester. Only one semester should be active at a time. Drives default selection in course and enrollment forms.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">StudentSemesters</span><span class="dd-tdesc">Records which semesters a student is registered with DAS. Distinct from university enrollment — a student can be enrolled at the university but not actively registered with DAS in a given term.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">StudentID</span><span class="dd-ctype fk">FK → Students</span><span class="dd-cdesc">The student registered in the semester.</span></div>
+      <div class="dd-col"><span class="dd-cname">SemesterID</span><span class="dd-ctype fk">FK → Semesters</span><span class="dd-cdesc">The semester the student is registered in.</span></div>
+      <div class="dd-col"><span class="dd-cname">RegistrationDate</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Date the student registered with DAS for this term. Distinct from the semester's StartDate.</span></div>
+      <div class="dd-col"><span class="dd-cname">Status</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Active = currently registered. Completed = term ended with services used. Withdrawn = left DAS mid-term.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">Professors</span><span class="dd-tdesc">Reference table of university instructors. Populated via the PeopleSoft sync flow. DAS staff may contact professors regarding student accommodations — office location and phone support this workflow.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">ProfessorID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">Referenced by CourseInstructors.</span></div>
+      <div class="dd-col"><span class="dd-cname">FirstName / LastName / Email / Phone</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Contact information. Email is the primary channel for notifying instructors of approved accommodations.</span></div>
+      <div class="dd-col"><span class="dd-cname">Department</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Academic department. Used for filtering in instructor lookup screens.</span></div>
+      <div class="dd-col"><span class="dd-cname">OfficeLocation</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Building and room number. Displayed on accommodation letters sent to students.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">Courses</span><span class="dd-tdesc">Master catalog of courses. Each record represents a course in the abstract (ENGL 101 always exists) independent of when it is offered. Populated via PeopleSoft sync. DeptTitle and CourseCode are stored separately to enable department-level filtering.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">CourseID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">Referenced by CourseOfferings.</span></div>
+      <div class="dd-col"><span class="dd-cname">DeptTitle</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Department abbreviation (e.g. "ENGL", "MATH"). Stored separately from CourseCode to support department-level filtering.</span></div>
+      <div class="dd-col"><span class="dd-cname">CourseCode</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Numeric or alphanumeric course number (e.g. "101"). Combined with DeptTitle in the app: DeptTitle &amp; " " &amp; CourseCode.</span></div>
+      <div class="dd-col"><span class="dd-cname">FullName</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Official course title (e.g. "Introduction to Composition"). Displayed alongside course code in student course lists.</span></div>
+      <div class="dd-col"><span class="dd-cname">Credits</span><span class="dd-ctype">Integer</span><span class="dd-cdesc">Credit hours awarded. Informational — not used in accommodation logic.</span></div>
+      <div class="dd-col"><span class="dd-cname">DeliveryFormat</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">In-Person, Online, or Hybrid. Relevant to accommodation planning — some accommodations apply only to in-person or hybrid courses.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">CourseOfferings</span><span class="dd-tdesc">A specific instance of a course in a given semester. The pivotal junction in the academic cluster — student enrollments, instructor assignments, and accommodation requests all link here rather than to Courses directly. Enables querying all accommodations active for a student in a specific semester.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">OfferingID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">Referenced by CourseInstructors, StudentCourses, and AccommodationRequests.</span></div>
+      <div class="dd-col"><span class="dd-cname">CourseID</span><span class="dd-ctype fk">FK → Courses</span><span class="dd-cdesc">The master course this offering is an instance of.</span></div>
+      <div class="dd-col"><span class="dd-cname">SemesterID</span><span class="dd-ctype fk">FK → Semesters</span><span class="dd-cdesc">The semester in which this offering runs.</span></div>
+      <div class="dd-col"><span class="dd-cname">Section</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Section identifier (e.g. "001"). Together with CourseID and SemesterID, uniquely identifies an offering.</span></div>
+      <div class="dd-col"><span class="dd-cname">Room</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Building and room where the course meets. Used when coordinating testing accommodations with physical location.</span></div>
+      <div class="dd-col"><span class="dd-cname">MeetingDays / MeetingTime</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Schedule information (e.g. "MWF", "09:00–09:50"). Displayed on student course lists and accommodation views.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">CourseInstructors</span><span class="dd-tdesc">Junction linking professors to course offerings with a role designation. Supports multiple instructors per offering. Role is stored at the junction level because the same person can hold different roles across different offerings.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">OfferingID</span><span class="dd-ctype fk">FK → CourseOfferings</span><span class="dd-cdesc">The offering being taught.</span></div>
+      <div class="dd-col"><span class="dd-cname">ProfessorID</span><span class="dd-ctype fk">FK → Professors</span><span class="dd-cdesc">The instructor assigned to the offering.</span></div>
+      <div class="dd-col"><span class="dd-cname">Role</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Primary Instructor = lead instructor of record. Co-Instructor = shared teaching. Teaching Assistant = supporting role, typically not the accommodation contact.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">StudentCourses</span><span class="dd-tdesc">Records a student's enrollment in a specific course offering. Populated via the PeopleSoft sync flow. Dropped and withdrawn rows are retained rather than deleted to maintain a full enrollment history.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">StudentID</span><span class="dd-ctype fk">FK → Students</span><span class="dd-cdesc">The enrolled student.</span></div>
+      <div class="dd-col"><span class="dd-cname">OfferingID</span><span class="dd-ctype fk">FK → CourseOfferings</span><span class="dd-cdesc">The specific section and semester the student is enrolled in.</span></div>
+      <div class="dd-col"><span class="dd-cname">EnrollmentStatus</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Enrolled = active. Dropped = withdrew during add/drop. Withdrawn = left after deadline. Completed = finished. Audit = attending without credit.</span></div>
+      <div class="dd-col"><span class="dd-cname">EnrolledDate</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Date the student registered for the course. Synced from PeopleSoft.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">AccommodationTypes</span><span class="dd-tdesc">Reference table defining the master list of available accommodation types. Maintained by administrators — not editable by general staff from the Canvas App. Both StudentEligibility and AccommodationRequests reference this table to ensure consistent vocabulary across both workflows.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">TypeID</span><span class="dd-ctype pk">PK · Autonumber</span><span class="dd-cdesc">Referenced by StudentEligibility and AccommodationRequests.</span></div>
+      <div class="dd-col"><span class="dd-cname">Name</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Accommodation name as displayed in the app and on letters (e.g. "Extended Time — 1.5x").</span></div>
+      <div class="dd-col"><span class="dd-cname">Description</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Plain-language description of what the accommodation entails. Shown in staff-facing detail views.</span></div>
+      <div class="dd-col"><span class="dd-cname">Category</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Broad grouping: Testing, Housing, Mobility, Technology, Communication, Attendance, Other. Used for filtering and Power BI reporting breakdowns.</span></div>
+      <div class="dd-col"><span class="dd-cname">RequiresMedicalDoc</span><span class="dd-ctype">Boolean</span><span class="dd-cdesc">True if supporting medical documentation is required before eligibility can be granted. Surfaced as a warning in the eligibility form.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">StudentEligibility</span><span class="dd-tdesc">Records what accommodations a student has been cleared to receive — set by DAS staff after reviewing documentation. Relatively stable and not term-specific. Comparing this against AccommodationRequests for the same student gives the "eligible but not yet registered" view, a key counselor workflow each semester.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">StudentID</span><span class="dd-ctype fk">FK → Students</span><span class="dd-cdesc">The student granted eligibility.</span></div>
+      <div class="dd-col"><span class="dd-cname">AccommodationTypeID</span><span class="dd-ctype fk">FK → AccommodationTypes</span><span class="dd-cdesc">The specific accommodation type the student is eligible for.</span></div>
+      <div class="dd-col"><span class="dd-cname">GrantedDate</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Date DAS formally approved eligibility for this accommodation.</span></div>
+      <div class="dd-col"><span class="dd-cname">ExpiryDate</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Date eligibility expires, if applicable. Null for indefinite eligibility. Used by Power Automate to flag approaching expirations.</span></div>
+      <div class="dd-col"><span class="dd-cname">GrantedBy</span><span class="dd-ctype fk">FK → Staff</span><span class="dd-cdesc">Staff member who approved the eligibility. Provides an audit trail of approval decisions.</span></div>
+      <div class="dd-col"><span class="dd-cname">Notes</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Conditions, caveats, or context related to this specific eligibility grant.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">AccommodationRequests</span><span class="dd-tdesc">Active registrations a student has invoked, per offering or per term. Multiple rows per student are expected. OfferingID is optional — course-specific accommodations link to an offering; general accommodations (parking, housing) do not. One table handles both cases without a split.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">StudentID</span><span class="dd-ctype fk">FK → Students</span><span class="dd-cdesc">The student making the request.</span></div>
+      <div class="dd-col"><span class="dd-cname">AccommodationTypeID</span><span class="dd-ctype fk">FK → AccommodationTypes</span><span class="dd-cdesc">The type of accommodation being requested.</span></div>
+      <div class="dd-col"><span class="dd-cname">OfferingID</span><span class="dd-ctype fk">FK → CourseOfferings (optional)</span><span class="dd-cdesc">Links to a specific course section. Null for non-course accommodations such as housing or parking.</span></div>
+      <div class="dd-col"><span class="dd-cname">Status</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Pending = awaiting review. Approved = active. Denied = not approved. Expired = past ActiveUntil. Withdrawn = student cancelled.</span></div>
+      <div class="dd-col"><span class="dd-cname">RegisteredDate</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Date the student submitted the request.</span></div>
+      <div class="dd-col"><span class="dd-cname">ActiveFrom / ActiveUntil</span><span class="dd-ctype">Date</span><span class="dd-cdesc">Date range during which the accommodation is in force. Typically aligns with semester boundaries for course-linked requests.</span></div>
+      <div class="dd-col"><span class="dd-cname">ApprovedBy</span><span class="dd-ctype fk">FK → Staff</span><span class="dd-cdesc">Staff member who approved the request. Null until approval is granted.</span></div>
+      <div class="dd-col"><span class="dd-cname">SpecialInstructions</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Accommodation-specific notes for the instructor or testing center (e.g. "Student requires large-print exam materials").</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">StudentNotes</span><span class="dd-tdesc">General-purpose notes recording staff observations, contact events, and meeting summaries. A note can stand alone or link to a specific appointment via the optional AppointmentID FK. IsPrivate restricts visibility to the authoring staff member — useful for sensitive observations not appropriate for shared staff views.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">StudentID</span><span class="dd-ctype fk">FK → Students</span><span class="dd-cdesc">The student this note is about.</span></div>
+      <div class="dd-col"><span class="dd-cname">StaffID</span><span class="dd-ctype fk">FK → Staff</span><span class="dd-cdesc">The staff member who authored the note. Auto-populated at runtime using the logged-in user's Staff record.</span></div>
+      <div class="dd-col"><span class="dd-cname">AppointmentID</span><span class="dd-ctype fk">FK → Appointments (optional)</span><span class="dd-cdesc">Links the note to a specific appointment for context. Null for standalone notes not tied to a scheduled interaction.</span></div>
+      <div class="dd-col"><span class="dd-cname">NoteText</span><span class="dd-ctype">Multiline text</span><span class="dd-cdesc">The body of the note. No length restriction in Dataverse.</span></div>
+      <div class="dd-col"><span class="dd-cname">NoteType</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Categorises the interaction: General, Phone Call, Email, Meeting, Follow-up, Observation. Used to filter the note timeline on the student detail screen.</span></div>
+      <div class="dd-col"><span class="dd-cname">CreatedOn</span><span class="dd-ctype">DateTime</span><span class="dd-cdesc">Timestamp of note creation. Auto-populated by the system.</span></div>
+      <div class="dd-col"><span class="dd-cname">IsPrivate</span><span class="dd-ctype">Boolean</span><span class="dd-cdesc">When true, visible only to the authoring staff member. Enforced at the Canvas App filter layer using the logged-in user's StaffID.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">Documents</span><span class="dd-tdesc">Stores metadata for files attached to a student record. The actual file binary is stored in Dataverse's native file column. All documents attach at the student level — without case management, files are browsable from the student detail screen by type.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">StudentID</span><span class="dd-ctype fk">FK → Students</span><span class="dd-cdesc">The student this document belongs to.</span></div>
+      <div class="dd-col"><span class="dd-cname">DocumentType</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Classifies the file: Diagnostic Letter, Medical Documentation, Accommodation Letter, Correspondence, Other. Used for filtering in the Documents tab.</span></div>
+      <div class="dd-col"><span class="dd-cname">FileName</span><span class="dd-ctype">Text</span><span class="dd-cdesc">Original filename including extension. Displayed in the documents gallery.</span></div>
+      <div class="dd-col"><span class="dd-cname">UploadedOn</span><span class="dd-ctype">DateTime</span><span class="dd-cdesc">Timestamp of upload. Used to sort the documents list newest-first.</span></div>
+    </div>
+  </div>
+
+  <div class="dd-table">
+    <div class="dd-header"><span class="dd-tname">Appointments</span><span class="dd-tdesc">Scheduled interactions between students and DAS staff. Supports intake sessions, follow-ups, documentation reviews, and general meetings. Notes created during or after an appointment link back here via StudentNotes.AppointmentID, creating a full interaction history per student.</span></div>
+    <div class="dd-cols">
+      <div class="dd-col"><span class="dd-cname">StudentID</span><span class="dd-ctype fk">FK → Students</span><span class="dd-cdesc">The student attending the appointment.</span></div>
+      <div class="dd-col"><span class="dd-cname">StaffID</span><span class="dd-ctype fk">FK → Staff</span><span class="dd-cdesc">The DAS staff member hosting the appointment.</span></div>
+      <div class="dd-col"><span class="dd-cname">DateTime</span><span class="dd-ctype">DateTime</span><span class="dd-cdesc">Scheduled date and time. Used by the Power Automate reminder flow which triggers 24 hours before this value.</span></div>
+      <div class="dd-col"><span class="dd-cname">DurationMins</span><span class="dd-ctype">Integer</span><span class="dd-cdesc">Planned duration in minutes. Displayed on the appointment card.</span></div>
+      <div class="dd-col"><span class="dd-cname">AppointmentType</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Intake = first meeting. Follow-up = check-in. Review = formal accommodation review. Documentation = collecting or reviewing paperwork. General = other.</span></div>
+      <div class="dd-col"><span class="dd-cname">Status</span><span class="dd-ctype">Choice</span><span class="dd-cdesc">Scheduled = upcoming. Completed = held. Cancelled = cancelled by either party. No Show = student did not attend. Status changes trigger the notification flow.</span></div>
+    </div>
+  </div>
+  <footer>Disability Access CRM &nbsp;·&nbsp; Dataverse Schema v4 &nbsp;·&nbsp; 16 tables</footer>
+
+  <script type="module">
+    import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+    await document.fonts.ready;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'base',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      themeVariables: {
+        darkMode: false,
+        fontSize: '13px',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        lineColor: '#73726c',
+        textColor: '#3d3d3a',
+        primaryColor: '#EEEDFE',
+        primaryTextColor: '#3C3489',
+        primaryBorderColor: '#AFA9EC',
+        secondaryColor: '#E1F5EE',
+        tertiaryColor: '#F1EFE8',
+      },
+    });
+
+    const diagram = `erDiagram
+
+  Students {
+    autonumber StudentID PK
+    text FirstName
+    text LastName
+    text Email
+    text Phone
+    text UniversityID
+    text Program
+    choice RegistrationStatus
+    text EmergencyContactName
+    text EmergencyContactPhone
+  }
+
+  Staff {
+    autonumber StaffID PK
+    text FirstName
+    text LastName
+    text Email
+    text Phone
+    text Title
+    text Department
+    choice Role
+    boolean IsActive
+    lookup SystemUserID
+  }
+
+  StudentStaff {
+    autonumber RecordID PK
+    lookup StudentID FK
+    lookup StaffID FK
+    choice AssignmentType
+    date AssignedDate
+    date EndDate
+    boolean IsPrimary
+  }
+
+  Semesters {
+    autonumber SemesterID PK
+    text Name
+    choice Term
+    int Year
+    date StartDate
+    date EndDate
+    boolean IsActive
+  }
+
+  StudentSemesters {
+    autonumber RecordID PK
+    lookup StudentID FK
+    lookup SemesterID FK
+    date RegistrationDate
+    choice Status
+  }
+
+  Professors {
+    autonumber ProfessorID PK
+    text FirstName
+    text LastName
+    text Email
+    text Department
+    text OfficeLocation
+    text Phone
+  }
+
+  Courses {
+    autonumber CourseID PK
+    text DeptTitle
+    text CourseCode
+    text FullName
+    text Description
+    int Credits
+    choice DeliveryFormat
+  }
+
+  CourseOfferings {
+    autonumber OfferingID PK
+    lookup CourseID FK
+    lookup SemesterID FK
+    text Section
+    text Room
+    text MeetingDays
+    text MeetingTime
+  }
+
+  CourseInstructors {
+    autonumber RecordID PK
+    lookup OfferingID FK
+    lookup ProfessorID FK
+    choice Role
+  }
+
+  StudentCourses {
+    autonumber RecordID PK
+    lookup StudentID FK
+    lookup OfferingID FK
+    choice EnrollmentStatus
+    date EnrolledDate
+  }
+
+  AccommodationTypes {
+    autonumber TypeID PK
+    text Name
+    text Description
+    choice Category
+    boolean RequiresMedicalDoc
+  }
+
+  StudentEligibility {
+    autonumber EligibilityID PK
+    lookup StudentID FK
+    lookup AccommodationTypeID FK
+    date GrantedDate
+    date ExpiryDate
+    lookup GrantedBy FK
+    text Notes
+  }
+
+  AccommodationRequests {
+    autonumber RequestID PK
+    lookup StudentID FK
+    lookup AccommodationTypeID FK
+    lookup OfferingID FK
+    choice Status
+    date RegisteredDate
+    date ActiveFrom
+    date ActiveUntil
+    lookup ApprovedBy FK
+    text SpecialInstructions
+  }
+
+  StudentNotes {
+    autonumber NoteID PK
+    lookup StudentID FK
+    lookup StaffID FK
+    lookup AppointmentID FK
+    multiline NoteText
+    choice NoteType
+    datetime CreatedOn
+    boolean IsPrivate
+  }
+
+  Documents {
+    autonumber DocumentID PK
+    lookup StudentID FK
+    choice DocumentType
+    text FileName
+    datetime UploadedOn
+  }
+
+  Appointments {
+    autonumber AppointmentID PK
+    lookup StudentID FK
+    lookup StaffID FK
+    datetime DateTime
+    int DurationMins
+    choice AppointmentType
+    choice Status
+  }
+
+  Students ||--o{ StudentStaff : "assigned to"
+  Staff ||--o{ StudentStaff : "manages"
+  Staff ||--o{ StudentNotes : "authors"
+  Staff ||--o{ Appointments : "hosts"
+  Staff ||--o{ StudentEligibility : "grants"
+  Staff ||--o{ AccommodationRequests : "approves"
+  Students ||--o{ StudentSemesters : "enrolled in"
+  Semesters ||--o{ StudentSemesters : "contains"
+  Semesters ||--o{ CourseOfferings : "runs"
+  Courses ||--o{ CourseOfferings : "offered as"
+  CourseOfferings ||--o{ CourseInstructors : "taught by"
+  Professors ||--o{ CourseInstructors : "instructs"
+  Students ||--o{ StudentCourses : "takes"
+  CourseOfferings ||--o{ StudentCourses : "enrolls"
+  Students ||--o{ StudentEligibility : "eligible for"
+  AccommodationTypes ||--o{ StudentEligibility : "defined by"
+  Students ||--o{ AccommodationRequests : "registers"
+  AccommodationTypes ||--o{ AccommodationRequests : "type of"
+  CourseOfferings ||--o{ AccommodationRequests : "applied to"
+  Students ||--o{ StudentNotes : "has notes"
+  Appointments ||--o{ StudentNotes : "linked to"
+  Students ||--o{ Documents : "uploads"
+  Students ||--o{ Appointments : "schedules"
+`;
+
+    const { svg } = await mermaid.render('erd-render', diagram);
+    document.getElementById('erd').innerHTML = svg;
+
+    document.querySelectorAll('#erd svg .node').forEach(node => {
+      const firstPath = node.querySelector('path[d]');
+      if (!firstPath) return;
+      const d = firstPath.getAttribute('d');
+      const nums = d.match(/-?[\d.]+/g)?.map(Number);
+      if (!nums || nums.length < 8) return;
+      const xs = [nums[0], nums[2], nums[4], nums[6]];
+      const ys = [nums[1], nums[3], nums[5], nums[7]];
+      const x = Math.min(...xs), y = Math.min(...ys);
+      const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', x); rect.setAttribute('y', y);
+      rect.setAttribute('width', w); rect.setAttribute('height', h);
+      rect.setAttribute('rx', '8');
+      for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+        if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+      }
+      firstPath.replaceWith(rect);
+    });
+    document.querySelectorAll('#erd svg .row-rect-odd path, #erd svg .row-rect-even path').forEach(p => {
+      p.setAttribute('stroke', 'none');
+    });
+  </script>
+</body>
+</html>
